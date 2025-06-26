@@ -2,9 +2,12 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.documents import Document
 import os
+import streamlit as st
 from .chroma_utils import vectorstore
 from dotenv import load_dotenv
 load_dotenv()
+
+os.environ["GROQ_API_KEY"]=st.secrets["GROQ_API_KEY"]
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages([
     ("system", (
