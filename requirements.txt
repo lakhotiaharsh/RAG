@@ -9,7 +9,6 @@ streamlit
 langchain_text_splitters
 chromadb
 typing
-sqlite3
 langchain_groq
 dotenv
 fastapi
