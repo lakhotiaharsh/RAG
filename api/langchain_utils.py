@@ -7,7 +7,7 @@ from .chroma_utils import vectorstore
 from dotenv import load_dotenv
 load_dotenv()
 
-os.environ["GROQ_API_KEY"]=st.secrets["GROQ_API_KEY"]
+#os.environ["GROQ_API_KEY"]=
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages([
     ("system", (
