@@ -41,10 +41,15 @@ def get_chat_history(session_id):
 
 def create_document_store():
     conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS document_store
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     filename TEXT,
-                     upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    conn.execute('DROP TABLE IF EXISTS document_store')  # Danger: Deletes data
+    conn.execute('''
+        CREATE TABLE document_store (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT,
+            session_id TEXT,
+            upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     conn.close()
 
 def insert_document_record(filename, session_id):
