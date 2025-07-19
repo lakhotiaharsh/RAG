@@ -31,9 +31,13 @@ def chat(query_input: QueryInput):
 from fastapi import UploadFile, File, HTTPException
 import os
 import shutil
+from fastapi import Form
 
 @app.post("/upload-doc")
-def upload_and_index_document(file: UploadFile = File(...), session_id: str = Form(...)):
+def upload_and_index_document(
+    file: UploadFile = File(...),
+    session_id: str = Form(...)
+):
     allowed_extensions = ['.pdf', '.docx', '.html']
     filename = file.filename or ""
     file_extension = os.path.splitext(filename)[1].lower()
@@ -44,19 +48,18 @@ def upload_and_index_document(file: UploadFile = File(...), session_id: str = Fo
     temp_file_path = f"temp_{file.filename}"
     
     try:
-        # Save the uploaded file to a temporary file
         with open(temp_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
+
         file_id = insert_document_record(file.filename, session_id)
         if file_id is None:
             raise HTTPException(status_code=500, detail=f"Failed to insert document record for {file.filename}.")
         success = index_document_to_chroma(temp_file_path, file_id)
-        
+
         if success:
             return {"message": f"File {file.filename} has been successfully uploaded and indexed.", "file_id": file_id}
         else:
-            delete_document_record(file_id)
+            delete_document_record(file_id, session_id)
             raise HTTPException(status_code=500, detail=f"Failed to index {file.filename}.")
     finally:
         if os.path.exists(temp_file_path):
