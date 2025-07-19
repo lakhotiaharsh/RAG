@@ -47,26 +47,32 @@ def create_document_store():
                      upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.close()
 
-def insert_document_record(filename):
+def insert_document_record(filename, session_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO document_store (filename) VALUES (?)', (filename,))
+    cursor.execute('INSERT INTO document_store (filename, session_id) VALUES (?, ?)', (filename, session_id))
     file_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return file_id
 
-def delete_document_record(file_id):
+def delete_document_record(file_id, session_id):
     conn = get_db_connection()
-    conn.execute('DELETE FROM document_store WHERE id = ?', (file_id,))
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM document_store WHERE id = ? AND session_id = ?', (file_id, session_id))
+    if cursor.fetchone() is None:
+        conn.close()
+        return False
+
+    cursor.execute('DELETE FROM document_store WHERE id = ?', (file_id,))
     conn.commit()
     conn.close()
     return True
 
-def get_all_documents():
+def get_all_documents(session_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, filename, upload_timestamp FROM document_store ORDER BY upload_timestamp DESC')
+    cursor.execute('SELECT id, filename, upload_timestamp FROM document_store WHERE session_id = ? ORDER BY upload_timestamp DESC', (session_id,))
     documents = cursor.fetchall()
     conn.close()
     return [dict(doc) for doc in documents]
