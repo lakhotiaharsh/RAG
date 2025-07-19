@@ -33,7 +33,7 @@ import os
 import shutil
 
 @app.post("/upload-doc")
-def upload_and_index_document(file: UploadFile = File(...)):
+def upload_and_index_document(file: UploadFile = File(...), session_id: str = Form(...)):
     allowed_extensions = ['.pdf', '.docx', '.html']
     filename = file.filename or ""
     file_extension = os.path.splitext(filename)[1].lower()
@@ -48,7 +48,7 @@ def upload_and_index_document(file: UploadFile = File(...)):
         with open(temp_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
-        file_id = insert_document_record(file.filename)
+        file_id = insert_document_record(file.filename, session_id)
         if file_id is None:
             raise HTTPException(status_code=500, detail=f"Failed to insert document record for {file.filename}.")
         success = index_document_to_chroma(temp_file_path, file_id)
@@ -64,7 +64,7 @@ def upload_and_index_document(file: UploadFile = File(...)):
 
 @app.get("/list-docs", response_model=list[DocumentInfo])
 def list_documents():
-    return get_all_documents()
+    return get_all_documents(session_id)
 
 @app.post("/delete-doc")
 def delete_document(request: DeleteFileRequest):
@@ -73,7 +73,7 @@ def delete_document(request: DeleteFileRequest):
 
     if chroma_delete_success:
         # If successfully deleted from Chroma, delete from our database
-        db_delete_success = delete_document_record(request.file_id)
+        db_delete_success = delete_document_record(request.file_id, request.session_id)
         if db_delete_success:
             return {"message": f"Successfully deleted document with file_id {request.file_id} from the system."}
         else:
