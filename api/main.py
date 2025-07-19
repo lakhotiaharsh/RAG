@@ -1,3 +1,4 @@
+from fastapi import Query
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from .pydantic_models import QueryInput, QueryResponse, DocumentInfo, DeleteFileRequest
 from .langchain_utils import *
@@ -66,7 +67,7 @@ def upload_and_index_document(
             os.remove(temp_file_path)
 
 @app.get("/list-docs", response_model=list[DocumentInfo])
-def list_documents():
+def list_documents(session_id: str = Query(...)):
     return get_all_documents(session_id)
 
 @app.post("/delete-doc")
